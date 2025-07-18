@@ -1,7 +1,11 @@
+"""Printability rules validation helpers."""
+
 import json
 from pathlib import Path
 
 class ValidationError(Exception):
+    """Raised when an object fails printability validation."""
+
     pass
 
 def load_rules(rules_path: str | Path) -> dict:
@@ -41,4 +45,25 @@ def validate(model: dict, rules: dict) -> list[str]:
             )
     return errors
 
-__all__ = ["ValidationError", "load_rules", "validate"]
+
+class Validator:
+    """Object oriented wrapper around :func:`validate`."""
+
+    def __init__(self, rules: dict | str | Path):
+        if isinstance(rules, (str, Path)):
+            self.rules = load_rules(rules)
+        else:
+            self.rules = rules
+
+    @classmethod
+    def from_file(cls, path: str | Path) -> "Validator":
+        """Create a :class:`Validator` from a rules JSON file."""
+
+        return cls(load_rules(path))
+
+    def validate(self, model: dict) -> list[str]:
+        """Validate ``model`` against the stored ``rules``."""
+
+        return validate(model, self.rules)
+
+__all__ = ["ValidationError", "load_rules", "validate", "Validator"]
