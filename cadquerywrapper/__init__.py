@@ -2,6 +2,7 @@
 
 from .validator import ValidationError, Validator, load_rules, validate
 from .save_validator import SaveValidator
+from .project import CadQueryWrapper
 
 __all__ = [
     "Validator",
@@ -9,4 +10,5 @@ __all__ = [
     "ValidationError",
     "load_rules",
     "validate",
+    "CadQueryWrapper",
 ]
