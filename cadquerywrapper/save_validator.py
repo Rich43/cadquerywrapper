@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import cadquery as cq
 
@@ -9,15 +9,13 @@ from .validator import ValidationError, Validator
 
 
 class SaveValidator:
-    """Patch CadQuery save functions to apply printability validation."""
+    """Wrapper around CadQuery save functions that performs validation."""
 
     def __init__(self, rules: dict | str | Path | Validator):
         if isinstance(rules, Validator):
             self.validator = rules
         else:
             self.validator = Validator(rules)
-        self._patched: bool = False
-        self._originals: list[tuple[Any, str, Callable]] = []
 
     @staticmethod
     def attach_model(obj: Any, model: dict) -> None:
@@ -33,48 +31,53 @@ class SaveValidator:
         if errors:
             raise ValidationError("; ".join(errors))
 
-    def _wrap_function(self, func: Callable) -> Callable:
-        def wrapper(obj, *args, **kwargs):
-            self._validate_obj(obj)
-            return func(obj, *args, **kwargs)
+    def export(self, obj: Any, *args: Any, **kwargs: Any) -> Any:
+        """Validate ``obj`` and delegate to :func:`cadquery.exporters.export`."""
 
-        return wrapper
+        self._validate_obj(obj)
+        return cq.exporters.export(obj, *args, **kwargs)
 
-    def enable(self) -> None:
-        """Patch CadQuery saving functions to perform validation."""
+    def cq_export(self, obj: Any, *args: Any, **kwargs: Any) -> Any:
+        """Validate ``obj`` and delegate to :func:`cadquery.export`."""
 
-        if self._patched:
-            return
+        self._validate_obj(obj)
+        return cq.export(obj, *args, **kwargs)
 
-        to_patch = [
-            (cq.exporters, "export"),
-            (cq.cq, "export"),
-            (cq.Shape, "exportStl"),
-            (cq.Shape, "exportStep"),
-            (cq.Shape, "exportBin"),
-            (cq.Shape, "exportBrep"),
-            (cq.Assembly, "export"),
-            (cq.Assembly, "save"),
-        ]
+    def export_stl(self, shape: cq.Shape, *args: Any, **kwargs: Any) -> None:
+        """Validate ``shape`` and call ``exportStl``."""
 
-        for target, name in to_patch:
-            orig = getattr(target, name)
-            self._originals.append((target, name, orig))
-            setattr(target, name, self._wrap_function(orig))
+        self._validate_obj(shape)
+        shape.exportStl(*args, **kwargs)
 
-        self._patched = True
+    def export_step(self, shape: cq.Shape, *args: Any, **kwargs: Any) -> None:
+        """Validate ``shape`` and call ``exportStep``."""
 
-    def disable(self) -> None:
-        """Restore original CadQuery saving functions."""
+        self._validate_obj(shape)
+        shape.exportStep(*args, **kwargs)
 
-        if not self._patched:
-            return
+    def export_bin(self, shape: cq.Shape, *args: Any, **kwargs: Any) -> None:
+        """Validate ``shape`` and call ``exportBin``."""
 
-        for target, name, orig in self._originals:
-            setattr(target, name, orig)
+        self._validate_obj(shape)
+        shape.exportBin(*args, **kwargs)
 
-        self._originals.clear()
-        self._patched = False
+    def export_brep(self, shape: cq.Shape, *args: Any, **kwargs: Any) -> None:
+        """Validate ``shape`` and call ``exportBrep``."""
+
+        self._validate_obj(shape)
+        shape.exportBrep(*args, **kwargs)
+
+    def assembly_export(self, assembly: cq.Assembly, *args: Any, **kwargs: Any) -> None:
+        """Validate ``assembly`` and call ``Assembly.export``."""
+
+        self._validate_obj(assembly)
+        assembly.export(*args, **kwargs)
+
+    def assembly_save(self, assembly: cq.Assembly, *args: Any, **kwargs: Any) -> None:
+        """Validate ``assembly`` and call ``Assembly.save``."""
+
+        self._validate_obj(assembly)
+        assembly.save(*args, **kwargs)
 
 
 __all__ = ["SaveValidator"]

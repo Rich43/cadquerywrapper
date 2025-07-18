@@ -13,15 +13,13 @@ validator = Validator("cadquerywrapper/rules/bambu_printability_rules.json")
 model = {"minimum_wall_thickness_mm": 0.6}
 errors = validator.validate(model)
 
-# enable validation for CadQuery save functions
 save_validator = SaveValidator(validator)
-save_validator.enable()
 
 # attach printability parameters to an object
 wp = cadquery.Workplane().box(1, 1, 1)
 SaveValidator.attach_model(wp, model)
 # exporting will raise ValidationError if parameters fail
-wp.export("out.stl")
+save_validator.export_stl(wp, "out.stl")
 ```
 
 ## Code Style
