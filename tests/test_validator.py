@@ -84,6 +84,12 @@ def test_validator_from_file():
     assert "minimum_wall_thickness_mm" in validator.rules["rules"]
 
 
+def test_validator_validate_raises():
+    validator = Validator({"rules": {"minimum_wall_thickness_mm": 0.8}})
+    with pytest.raises(ValidationError):
+        validator.validate({"minimum_wall_thickness_mm": 0.5})
+
+
 def test_save_validator_delegates_and_validates():
     sv = SaveValidator({"rules": {"minimum_wall_thickness_mm": 0.8}})
     obj = DummyShape()

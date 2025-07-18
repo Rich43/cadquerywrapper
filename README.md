@@ -5,13 +5,16 @@ CadQueryWrapper is a lightweight wrapper around [CadQuery/cadquery](https://gith
 ## Usage
 
 ```python
-from cadquerywrapper import Validator, SaveValidator
+from cadquerywrapper import Validator, SaveValidator, ValidationError
 
 # load rules and create a validator
 validator = Validator("cadquerywrapper/rules/bambu_printability_rules.json")
 
 model = {"minimum_wall_thickness_mm": 0.6}
-errors = validator.validate(model)
+try:
+    validator.validate(model)
+except ValidationError as exc:
+    print("Model invalid:", exc)
 
 save_validator = SaveValidator(validator)
 

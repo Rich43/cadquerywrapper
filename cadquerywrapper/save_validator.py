@@ -27,9 +27,7 @@ class SaveValidator:
         model = getattr(obj, "_printability_model", None)
         if model is None:
             return
-        errors = self.validator.validate(model)
-        if errors:
-            raise ValidationError("; ".join(errors))
+        self.validator.validate(model)
 
     def export(self, obj: Any, *args: Any, **kwargs: Any) -> Any:
         """Validate ``obj`` and delegate to :func:`cadquery.exporters.export`."""

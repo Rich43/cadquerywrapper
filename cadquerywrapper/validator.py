@@ -52,7 +52,11 @@ def validate(model: dict, rules: dict) -> list[str]:
 
 
 class Validator:
-    """Object oriented wrapper around :func:`validate`."""
+    """Object oriented wrapper around :func:`validate`.
+
+    The ``validate`` method will raise :class:`ValidationError` if the provided
+    model data does not satisfy the stored rules.
+    """
 
     def __init__(self, rules: dict | str | Path):
         if isinstance(rules, (str, Path)):
@@ -66,10 +70,18 @@ class Validator:
 
         return cls(load_rules(path))
 
-    def validate(self, model: dict) -> list[str]:
-        """Validate ``model`` against the stored ``rules``."""
+    def validate(self, model: dict) -> None:
+        """Validate ``model`` against the stored ``rules``.
 
-        return validate(model, self.rules)
+        Raises
+        ------
+        ValidationError
+            If any of the model values are below the configured limits.
+        """
+
+        errors = validate(model, self.rules)
+        if errors:
+            raise ValidationError("; ".join(errors))
 
 
 __all__ = ["ValidationError", "load_rules", "validate", "Validator"]
