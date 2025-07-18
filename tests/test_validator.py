@@ -59,9 +59,11 @@ _dummy_cq.Shape = DummyShape
 _dummy_cq.Assembly = DummyAssembly
 
 sys.modules.setdefault("cadquery", _dummy_cq)
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from cadquerywrapper.validator import Validator, load_rules, validate
 from cadquerywrapper.save_validator import SaveValidator, ValidationError
+from cadquerywrapper.project import CadQueryWrapper
 
 
 RULES_PATH = Path("cadquerywrapper/rules/bambu_printability_rules.json")
@@ -104,3 +106,19 @@ def test_save_validator_invalid_raises():
     SaveValidator.attach_model(obj, {"minimum_wall_thickness_mm": 0.1})
     with pytest.raises(ValidationError):
         sv.export_stl(obj, "out.stl")
+
+
+def test_wrapper_delegates_and_validates():
+    wrapper = CadQueryWrapper({"rules": {"minimum_wall_thickness_mm": 0.8}})
+    obj = DummyShape()
+    CadQueryWrapper.attach_model(obj, {"minimum_wall_thickness_mm": 0.9})
+    wrapper.export_stl(obj)
+    assert obj.called[-1][0] == "exportStl"
+
+
+def test_wrapper_invalid_raises():
+    wrapper = CadQueryWrapper({"rules": {"minimum_wall_thickness_mm": 0.8}})
+    obj = DummyShape()
+    CadQueryWrapper.attach_model(obj, {"minimum_wall_thickness_mm": 0.1})
+    with pytest.raises(ValidationError):
+        wrapper.export_stl(obj)
