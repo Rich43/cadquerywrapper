@@ -23,3 +23,6 @@ SaveValidator.attach_model(wp, model)
 # exporting will raise ValidationError if parameters fail
 wp.export("out.stl")
 ```
+
+## Code Style
+See [CODE_STYLE.md](CODE_STYLE.md) for contribution guidelines. Monkey patching is prohibited.
