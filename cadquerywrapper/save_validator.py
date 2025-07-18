@@ -5,7 +5,7 @@ from typing import Any
 
 import cadquery as cq
 
-from .validator import ValidationError, Validator
+from .validator import ValidationError, Validator, validate
 
 
 class SaveValidator:
@@ -27,7 +27,29 @@ class SaveValidator:
         model = getattr(obj, "_printability_model", None)
         if model is None:
             return
-        self.validator.validate(model)
+
+        combined_model = dict(model)
+        max_size = self.validator.rules.get("rules", {}).get("max_model_size_mm")
+        if max_size is not None:
+            try:
+                bbox_obj = obj.val().BoundingBox()
+            except Exception:  # pragma: no cover - val() may not exist
+                bbox_obj = None
+                if hasattr(obj, "BoundingBox"):
+                    try:
+                        bbox_obj = obj.BoundingBox()
+                    except Exception:  # pragma: no cover - bounding box failure
+                        bbox_obj = None
+            if bbox_obj is not None:
+                combined_model["max_model_size_mm"] = {
+                    "X": bbox_obj.xlen,
+                    "Y": bbox_obj.ylen,
+                    "Z": bbox_obj.zlen,
+                }
+
+        errors = validate(combined_model, self.validator.rules)
+        if errors:
+            raise ValidationError("; ".join(errors))
 
     def export(self, obj: Any, *args: Any, **kwargs: Any) -> Any:
         """Validate ``obj`` and delegate to :func:`cadquery.exporters.export`."""

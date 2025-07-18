@@ -58,6 +58,19 @@ class DummyAssembly:
 _dummy_cq.Shape = DummyShape
 _dummy_cq.Assembly = DummyAssembly
 
+
+class DummyBBoxShape(DummyShape):
+    def __init__(self, x: float, y: float, z: float):
+        super().__init__()
+        self._bbox = types.SimpleNamespace(xlen=x, ylen=y, zlen=z)
+
+    def val(self):
+        return self
+
+    def BoundingBox(self):
+        return self._bbox
+
+
 sys.modules.setdefault("cadquery", _dummy_cq)
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -122,3 +135,19 @@ def test_wrapper_invalid_raises():
     CadQueryWrapper.attach_model(obj, {"minimum_wall_thickness_mm": 0.1})
     with pytest.raises(ValidationError):
         wrapper.export_stl(obj)
+
+
+def test_validate_max_model_size_dict():
+    rules = {"rules": {"max_model_size_mm": {"X": 1, "Y": 1, "Z": 1}}}
+    model = {"max_model_size_mm": {"X": 2, "Y": 0.5, "Z": 0.5}}
+    errors = validate(model, rules)
+    assert errors == ["Model size X 2 exceeds maximum 1"]
+
+
+def test_save_validator_model_too_large():
+    rules = {"rules": {"max_model_size_mm": {"X": 1, "Y": 1, "Z": 1}}}
+    sv = SaveValidator(rules)
+    obj = DummyBBoxShape(2, 0.5, 0.5)
+    SaveValidator.attach_model(obj, {})
+    with pytest.raises(ValidationError):
+        sv.export_stl(obj, "out.stl")

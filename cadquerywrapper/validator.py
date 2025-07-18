@@ -40,7 +40,14 @@ def validate(model: dict, rules: dict) -> list[str]:
         if model_value is None:
             continue
         if isinstance(value, dict):
-            # skip complex values like max_model_size_mm
+            if isinstance(model_value, dict) and key == "max_model_size_mm":
+                for axis, limit in value.items():
+                    axis_value = model_value.get(axis)
+                    if axis_value is None:
+                        continue
+                    if axis_value > limit:
+                        msg = f"Model size {axis} {axis_value} exceeds maximum {limit}"
+                        errors.append(msg)
             continue
         if model_value < value:
             msg = (
