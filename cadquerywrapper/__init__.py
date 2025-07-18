@@ -1,6 +1,6 @@
 """CadQueryWrapper package."""
 
-from .validator import load_rules, validate, ValidationError
-from .save_validator import enable_validation, attach_model
+from .validator import ValidationError, Validator, load_rules, validate
+from .save_validator import SaveValidator
 
-__all__ = ["load_rules", "validate", "ValidationError", "enable_validation", "attach_model"]
+__all__ = ["Validator", "SaveValidator", "ValidationError", "load_rules", "validate"]

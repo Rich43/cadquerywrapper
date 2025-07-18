@@ -5,19 +5,21 @@ CadQueryWrapper is a lightweight wrapper around [CadQuery/cadquery](https://gith
 ## Usage
 
 ```python
-from cadquerywrapper.validator import load_rules, validate
-from cadquerywrapper import enable_validation, attach_model
+from cadquerywrapper import Validator, SaveValidator
 
-rules = load_rules("cadquerywrapper/rules/bambu_printability_rules.json")
+# load rules and create a validator
+validator = Validator("cadquerywrapper/rules/bambu_printability_rules.json")
+
 model = {"minimum_wall_thickness_mm": 0.6}
-errors = validate(model, rules)
+errors = validator.validate(model)
 
 # enable validation for CadQuery save functions
-enable_validation(rules)
+save_validator = SaveValidator(validator)
+save_validator.enable()
 
 # attach printability parameters to an object
 wp = cadquery.Workplane().box(1, 1, 1)
-attach_model(wp, model)
+SaveValidator.attach_model(wp, model)
 # exporting will raise ValidationError if parameters fail
 wp.export("out.stl")
 ```
