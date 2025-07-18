@@ -3,15 +3,18 @@
 import json
 from pathlib import Path
 
+
 class ValidationError(Exception):
     """Raised when an object fails printability validation."""
 
     pass
 
+
 def load_rules(rules_path: str | Path) -> dict:
     path = Path(rules_path)
     with path.open() as f:
         return json.load(f)
+
 
 def validate(model: dict, rules: dict) -> list[str]:
     """Validate model parameters against printability rules.
@@ -40,9 +43,11 @@ def validate(model: dict, rules: dict) -> list[str]:
             # skip complex values like max_model_size_mm
             continue
         if model_value < value:
-            errors.append(
-                f"{key.replace('_', ' ').capitalize()} {model_value} is below minimum {value}"
+            msg = (
+                f"{key.replace('_', ' ').capitalize()} {model_value} "
+                f"is below minimum {value}"
             )
+            errors.append(msg)
     return errors
 
 
@@ -65,5 +70,6 @@ class Validator:
         """Validate ``model`` against the stored ``rules``."""
 
         return validate(model, self.rules)
+
 
 __all__ = ["ValidationError", "load_rules", "validate", "Validator"]

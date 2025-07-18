@@ -76,4 +76,5 @@ class SaveValidator:
         self._originals.clear()
         self._patched = False
 
+
 __all__ = ["SaveValidator"]
