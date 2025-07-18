@@ -3,6 +3,8 @@ import sys
 import types
 from pathlib import Path
 
+import trimesh
+
 import pytest
 
 # Provide stub cadquery module before importing package modules
@@ -69,6 +71,17 @@ class DummyBBoxShape(DummyShape):
 
     def BoundingBox(self):
         return self._bbox
+
+
+class SphereShape(DummyShape):
+    def __init__(self, subdivisions: int):
+        super().__init__()
+        self.subdivisions = subdivisions
+
+    def exportStl(self, file_name: str, *args, **kwargs):
+        super().exportStl(file_name, *args, **kwargs)
+        mesh = trimesh.creation.icosphere(subdivisions=self.subdivisions)
+        mesh.export(file_name)
 
 
 sys.modules.setdefault("cadquery", _dummy_cq)
@@ -151,3 +164,13 @@ def test_save_validator_model_too_large():
     SaveValidator.attach_model(obj, {})
     with pytest.raises(ValidationError):
         sv.export_stl(obj, "out.stl")
+
+
+def test_save_validator_triangle_count(tmp_path):
+    rules = {"rules": {"maximum_file_triangle_count": 100}}
+    sv = SaveValidator(rules)
+    shape = SphereShape(subdivisions=3)
+    SaveValidator.attach_model(shape, {})
+    file_name = tmp_path / "sphere.stl"
+    with pytest.raises(ValidationError):
+        sv.export_stl(shape, file_name)

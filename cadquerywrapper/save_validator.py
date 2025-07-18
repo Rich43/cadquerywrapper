@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+import trimesh
+
 import cadquery as cq
 
 from .validator import ValidationError, Validator, validate
@@ -51,6 +53,18 @@ class SaveValidator:
         if errors:
             raise ValidationError("; ".join(errors))
 
+    def _check_triangle_count(self, file_name: str | Path) -> None:
+        """Validate mesh triangle count against configured limit."""
+
+        limit = self.validator.rules.get("rules", {}).get("maximum_file_triangle_count")
+        if limit is None:
+            return
+
+        mesh = trimesh.load_mesh(file_name)
+        tri_count = int(len(mesh.faces))
+        if tri_count > limit:
+            raise ValidationError(f"Triangle count {tri_count} exceeds maximum {limit}")
+
     def export(self, obj: Any, *args: Any, **kwargs: Any) -> Any:
         """Validate ``obj`` and delegate to :func:`cadquery.exporters.export`."""
 
@@ -68,6 +82,12 @@ class SaveValidator:
 
         self._validate_obj(shape)
         shape.exportStl(*args, **kwargs)
+        file_name = None
+        if args:
+            file_name = args[0]
+        file_name = kwargs.get("fileName", file_name)
+        if file_name is not None:
+            self._check_triangle_count(file_name)
 
     def export_step(self, shape: cq.Shape, *args: Any, **kwargs: Any) -> None:
         """Validate ``shape`` and call ``exportStep``."""
