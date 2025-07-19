@@ -92,3 +92,71 @@ class Validator:
 
 
 __all__ = ["ValidationError", "load_rules", "validate", "Validator"]
+
+
+def is_manifold(shape: object) -> bool:
+    """Return ``True`` if ``shape`` appears to be manifold."""
+    try:
+        if hasattr(shape, "isValid") and not shape.isValid():
+            return False
+    except Exception:
+        return False
+    try:
+        if hasattr(shape, "isClosed") and not shape.isClosed():
+            return False
+    except Exception:
+        return False
+    return True
+
+
+def shape_has_open_edges(shape: object) -> bool:
+    """Return ``True`` if ``shape`` seems to have open edges."""
+    if hasattr(shape, "hasOpenEdges"):
+        try:
+            return bool(shape.hasOpenEdges())
+        except Exception:
+            return True
+    if hasattr(shape, "open_edges"):
+        return bool(getattr(shape, "open_edges"))
+    return False
+
+
+def assembly_has_intersections(assembly: object) -> bool:
+    """Return ``True`` if any solids in ``assembly`` intersect."""
+    solids = []
+    if hasattr(assembly, "solids"):
+        try:
+            solids = list(assembly.solids())
+        except Exception:
+            solids = []
+    if not solids and hasattr(assembly, "children"):
+        solids = [c for c in assembly.children if hasattr(c, "intersect")]
+    for i, shape1 in enumerate(solids):
+        for shape2 in solids[i + 1 :]:
+            try:
+                result = shape1.intersect(shape2)
+            except Exception:
+                continue
+            if result is None:
+                continue
+            is_null = False
+            if hasattr(result, "isNull"):
+                try:
+                    is_null = result.isNull()
+                except Exception:
+                    is_null = False
+            elif hasattr(result, "Volume"):
+                try:
+                    is_null = result.Volume() == 0
+                except Exception:
+                    is_null = False
+            if not is_null:
+                return True
+    return False
+
+
+__all__ += [
+    "is_manifold",
+    "shape_has_open_edges",
+    "assembly_has_intersections",
+]

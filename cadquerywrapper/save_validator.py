@@ -7,7 +7,14 @@ import trimesh
 
 import cadquery as cq
 
-from .validator import ValidationError, Validator, validate
+from .validator import (
+    ValidationError,
+    Validator,
+    assembly_has_intersections,
+    is_manifold,
+    shape_has_open_edges,
+    validate,
+)
 
 
 class SaveValidator:
@@ -52,6 +59,19 @@ class SaveValidator:
         errors = validate(combined_model, self.validator.rules)
         if errors:
             raise ValidationError("; ".join(errors))
+
+        rules = self.validator.rules.get("rules", {})
+        if rules.get("manifold_geometry_required"):
+            if not is_manifold(obj):
+                raise ValidationError("Non-manifold geometry detected")
+
+        if rules.get("no_open_edges"):
+            if shape_has_open_edges(obj):
+                raise ValidationError("Object contains open edges")
+
+        if rules.get("no_intersecting_geometry"):
+            if assembly_has_intersections(obj):
+                raise ValidationError("Intersecting geometry detected")
 
     def _check_triangle_count(self, file_name: str | Path) -> None:
         """Validate mesh triangle count against configured limit."""
