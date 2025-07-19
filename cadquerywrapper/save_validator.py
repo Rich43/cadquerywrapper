@@ -152,7 +152,11 @@ class SaveValidator:
         self._validate_file_format(file_name)
         shape.exportStl(*args, **kwargs)
         if file_name is not None:
-            self._check_triangle_count(file_name)
+            try:
+                self._check_triangle_count(file_name)
+            except ValidationError:
+                Path(file_name).unlink(missing_ok=True)
+                raise
 
     def export_step(self, shape: cq.Shape, *args: Any, **kwargs: Any) -> None:
         """Validate ``shape`` and call ``exportStep``."""
