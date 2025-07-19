@@ -155,8 +155,99 @@ def assembly_has_intersections(assembly: object) -> bool:
     return False
 
 
+def assembly_minimum_clearance(assembly: object) -> float | None:
+    """Return the minimum distance between solids in ``assembly``."""
+
+    solids = []
+    if hasattr(assembly, "solids"):
+        try:
+            solids = list(assembly.solids())
+        except Exception:  # pragma: no cover - solids retrieval failure
+            solids = []
+    if not solids and hasattr(assembly, "children"):
+        solids = [c for c in assembly.children if hasattr(c, "distTo")]
+
+    min_dist: float | None = None
+    for i, shape1 in enumerate(solids):
+        for shape2 in solids[i + 1 :]:
+            dists = []
+            for shape_a, shape_b in ((shape1, shape2), (shape2, shape1)):
+                method = (
+                    getattr(shape_a, "distTo", None)
+                    or getattr(shape_a, "distance", None)
+                    or getattr(shape_a, "Distance", None)
+                )
+                if callable(method):
+                    try:
+                        d = float(method(shape_b))
+                    except Exception:  # pragma: no cover - distance failure
+                        continue
+                    dists.append(d)
+            if not dists:
+                continue
+            pair_dist = min(dists)
+            if min_dist is None or pair_dist < min_dist:
+                min_dist = pair_dist
+    return min_dist
+
+
+def shape_max_overhang_angle(
+    shape: object, z_dir: tuple[float, float, float] = (0.0, 0.0, 1.0)
+) -> float | None:
+    """Return the maximum overhang angle of ``shape`` in degrees."""
+
+    faces = []
+    for attr in ("faces", "Faces", "all_faces"):
+        getter = getattr(shape, attr, None)
+        if callable(getter):
+            try:
+                faces = list(getter())
+            except Exception:  # pragma: no cover - faces failure
+                faces = []
+            if faces:
+                break
+        elif isinstance(getter, (list, tuple)):
+            faces = list(getter)
+            break
+    if not faces:
+        return None
+
+    import math
+
+    z_len = math.sqrt(sum(c * c for c in z_dir)) or 1.0
+    z_axis = tuple(c / z_len for c in z_dir)
+    max_angle = 0.0
+
+    for face in faces:
+        normal = None
+        if hasattr(face, "normalAt"):
+            try:
+                normal = face.normalAt()
+            except Exception:  # pragma: no cover - normal failure
+                normal = None
+        if normal is None and hasattr(face, "normal"):
+            normal = face.normal
+        if normal is None:
+            continue
+        if hasattr(normal, "toTuple"):
+            normal = normal.toTuple()
+        if not isinstance(normal, (list, tuple)) or len(normal) != 3:
+            continue
+        n_len = math.sqrt(sum(c * c for c in normal)) or 1.0
+        norm = tuple(c / n_len for c in normal)
+        dot = abs(sum(a * b for a, b in zip(norm, z_axis)))
+        dot = max(-1.0, min(1.0, dot))
+        angle = math.degrees(math.acos(dot))
+        if angle > max_angle:
+            max_angle = angle
+
+    return max_angle
+
+
 __all__ += [
     "is_manifold",
     "shape_has_open_edges",
     "assembly_has_intersections",
+    "assembly_minimum_clearance",
+    "shape_max_overhang_angle",
 ]
