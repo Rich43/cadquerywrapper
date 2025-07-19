@@ -73,6 +73,26 @@ class SaveValidator:
             if assembly_has_intersections(obj):
                 raise ValidationError("Intersecting geometry detected")
 
+        min_clear = rules.get("minimum_clearance_between_parts_mm")
+        if min_clear is not None and hasattr(obj, "solids"):
+            from .validator import assembly_minimum_clearance
+
+            clearance = assembly_minimum_clearance(obj)
+            if clearance is not None and clearance < min_clear:
+                raise ValidationError(
+                    f"Clearance {clearance} below minimum {min_clear}"
+                )
+
+        max_overhang = rules.get("overhang_max_angle_deg")
+        if max_overhang is not None:
+            from .validator import shape_max_overhang_angle
+
+            angle = shape_max_overhang_angle(obj)
+            if angle is not None and angle > max_overhang:
+                raise ValidationError(
+                    f"Overhang angle {angle} exceeds maximum {max_overhang}"
+                )
+
     def _check_triangle_count(self, file_name: str | Path) -> None:
         """Validate mesh triangle count against configured limit."""
 

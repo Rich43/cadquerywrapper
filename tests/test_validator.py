@@ -6,6 +6,7 @@ from pathlib import Path
 import trimesh
 
 import pytest
+import math
 
 # Provide stub cadquery module before importing package modules
 _dummy_cq = types.ModuleType("cadquery")
@@ -132,6 +133,33 @@ class IntersectSolid(DummyShape):
     def __init__(self, will_intersect: bool = True):
         super().__init__()
         self.will_intersect = will_intersect
+
+
+class ClearanceSolid(DummyShape):
+    def __init__(self, distance: float):
+        super().__init__()
+        self.distance = distance
+
+    def distTo(self, other):  # noqa: D401 - simple distance stub
+        return self.distance
+
+
+class _OverhangFace:
+    def __init__(self, angle: float):
+        self._angle = angle
+
+    def normalAt(self):
+        rad = math.radians(self._angle)
+        return (math.sin(rad), 0.0, math.cos(rad))
+
+
+class OverhangShape(DummyShape):
+    def __init__(self, angles: list[float]):
+        super().__init__()
+        self._angles = angles
+
+    def faces(self):  # noqa: D401 - returns dummy faces
+        return [_OverhangFace(a) for a in self._angles]
 
 
 sys.modules.setdefault("cadquery", _dummy_cq)
@@ -279,3 +307,23 @@ def test_save_validator_disallowed_format_export():
     obj = DummyShape()
     with pytest.raises(ValidationError):
         sv.export(obj, "model.step")
+
+
+def test_save_validator_minimum_clearance():
+    rules = {"rules": {"minimum_clearance_between_parts_mm": 0.3}}
+    s1 = ClearanceSolid(0.2)
+    s2 = ClearanceSolid(0.5)
+    assembly = DummyAssembly([s1, s2])
+    sv = SaveValidator(rules)
+    SaveValidator.attach_model(assembly, {})
+    with pytest.raises(ValidationError):
+        sv.assembly_save(assembly)
+
+
+def test_save_validator_overhang_angle():
+    rules = {"rules": {"overhang_max_angle_deg": 45}}
+    shape = OverhangShape([30, 50])
+    sv = SaveValidator(rules)
+    SaveValidator.attach_model(shape, {})
+    with pytest.raises(ValidationError):
+        sv.export_stl(shape, "out.stl")
