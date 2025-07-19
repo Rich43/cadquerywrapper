@@ -2,6 +2,20 @@
 
 CadQueryWrapper is a lightweight wrapper around [CadQuery/cadquery](https://github.com/CadQuery/cadquery). It provides a small validator for checking model parameters against 3D printer rules.
 
+## Installation
+
+Install the runtime dependencies with:
+
+```bash
+pip install -r requirements.txt
+```
+
+For running the test suite use the development requirements instead:
+
+```bash
+pip install -r requirements-dev.txt
+```
+
 ## Usage
 
 ```python
