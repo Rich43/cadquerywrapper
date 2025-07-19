@@ -85,27 +85,52 @@ class SaveValidator:
         if tri_count > limit:
             raise ValidationError(f"Triangle count {tri_count} exceeds maximum {limit}")
 
+    def _validate_file_format(self, file_name: str | Path | None) -> None:
+        """Ensure ``file_name`` uses an allowed extension."""
+
+        if file_name is None:
+            return
+        rules = self.validator.rules.get("rules", {})
+        preferred = rules.get("preferred_file_format")
+        alternates = rules.get("alternate_file_formats", []) or []
+        allowed = []
+        if preferred:
+            allowed.append(str(preferred).lower().lstrip("."))
+        for alt in alternates:
+            if alt:
+                allowed.append(str(alt).lower().lstrip("."))
+        if not allowed:
+            return
+        ext = Path(file_name).suffix.lower().lstrip(".")
+        if ext and ext not in allowed:
+            raise ValidationError(f"File format {ext.upper()} is not supported")
+
     def export(self, obj: Any, *args: Any, **kwargs: Any) -> Any:
         """Validate ``obj`` and delegate to :func:`cadquery.exporters.export`."""
 
         self._validate_obj(obj)
+        file_name = args[0] if args else None
+        file_name = kwargs.get("fileName", kwargs.get("fname", file_name))
+        self._validate_file_format(file_name)
         return cq.exporters.export(obj, *args, **kwargs)
 
     def cq_export(self, obj: Any, *args: Any, **kwargs: Any) -> Any:
         """Validate ``obj`` and delegate to :func:`cadquery.export`."""
 
         self._validate_obj(obj)
+        file_name = args[0] if args else None
+        file_name = kwargs.get("fileName", kwargs.get("fname", file_name))
+        self._validate_file_format(file_name)
         return cq.export(obj, *args, **kwargs)
 
     def export_stl(self, shape: cq.Shape, *args: Any, **kwargs: Any) -> None:
         """Validate ``shape`` and call ``exportStl``."""
 
         self._validate_obj(shape)
-        shape.exportStl(*args, **kwargs)
-        file_name = None
-        if args:
-            file_name = args[0]
+        file_name = args[0] if args else None
         file_name = kwargs.get("fileName", file_name)
+        self._validate_file_format(file_name)
+        shape.exportStl(*args, **kwargs)
         if file_name is not None:
             self._check_triangle_count(file_name)
 
@@ -113,30 +138,45 @@ class SaveValidator:
         """Validate ``shape`` and call ``exportStep``."""
 
         self._validate_obj(shape)
+        file_name = args[0] if args else None
+        file_name = kwargs.get("fileName", file_name)
+        self._validate_file_format(file_name)
         shape.exportStep(*args, **kwargs)
 
     def export_bin(self, shape: cq.Shape, *args: Any, **kwargs: Any) -> None:
         """Validate ``shape`` and call ``exportBin``."""
 
         self._validate_obj(shape)
+        file_name = args[0] if args else None
+        file_name = kwargs.get("fileName", file_name)
+        self._validate_file_format(file_name)
         shape.exportBin(*args, **kwargs)
 
     def export_brep(self, shape: cq.Shape, *args: Any, **kwargs: Any) -> None:
         """Validate ``shape`` and call ``exportBrep``."""
 
         self._validate_obj(shape)
+        file_name = args[0] if args else None
+        file_name = kwargs.get("fileName", file_name)
+        self._validate_file_format(file_name)
         shape.exportBrep(*args, **kwargs)
 
     def assembly_export(self, assembly: cq.Assembly, *args: Any, **kwargs: Any) -> None:
         """Validate ``assembly`` and call ``Assembly.export``."""
 
         self._validate_obj(assembly)
+        file_name = args[0] if args else None
+        file_name = kwargs.get("fileName", file_name)
+        self._validate_file_format(file_name)
         assembly.export(*args, **kwargs)
 
     def assembly_save(self, assembly: cq.Assembly, *args: Any, **kwargs: Any) -> None:
         """Validate ``assembly`` and call ``Assembly.save``."""
 
         self._validate_obj(assembly)
+        file_name = args[0] if args else None
+        file_name = kwargs.get("fileName", file_name)
+        self._validate_file_format(file_name)
         assembly.save(*args, **kwargs)
 
 

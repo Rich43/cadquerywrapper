@@ -253,3 +253,29 @@ def test_save_validator_intersections():
     SaveValidator.attach_model(assembly, {})
     with pytest.raises(ValidationError):
         sv.assembly_save(assembly)
+
+
+def test_save_validator_disallowed_format():
+    rules = {
+        "rules": {
+            "preferred_file_format": "STL",
+            "alternate_file_formats": ["3MF", "OBJ"],
+        }
+    }
+    sv = SaveValidator(rules)
+    shape = DummyShape()
+    with pytest.raises(ValidationError):
+        sv.export_stl(shape, "out.step")
+
+
+def test_save_validator_disallowed_format_export():
+    rules = {
+        "rules": {
+            "preferred_file_format": "STL",
+            "alternate_file_formats": ["OBJ"],
+        }
+    }
+    sv = SaveValidator(rules)
+    obj = DummyShape()
+    with pytest.raises(ValidationError):
+        sv.export(obj, "model.step")
