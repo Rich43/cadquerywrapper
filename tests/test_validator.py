@@ -32,6 +32,10 @@ _dummy_cq.exporters.export = _exporter
 class DummyShape:
     def __init__(self):
         self.called = []
+        self.valid = True
+        self.closed = True
+        self._open_edges = False
+        self.will_intersect = False
 
     def exportStl(self, *args, **kwargs):
         self.called.append(("exportStl", args, kwargs))
@@ -45,16 +49,43 @@ class DummyShape:
     def exportBrep(self, *args, **kwargs):
         self.called.append(("exportBrep", args, kwargs))
 
+    def isValid(self):
+        return self.valid
+
+    def isClosed(self):
+        return self.closed
+
+    def hasOpenEdges(self):
+        return self._open_edges
+
+    class _IntersectResult:
+        def __init__(self, has_volume: bool):
+            self._has_volume = has_volume
+
+        def isNull(self):
+            return not self._has_volume
+
+        def Volume(self):
+            return 1 if self._has_volume else 0
+
+    def intersect(self, other):
+        has_vol = self.will_intersect and getattr(other, "will_intersect", False)
+        return self._IntersectResult(has_vol)
+
 
 class DummyAssembly:
-    def __init__(self):
+    def __init__(self, solids=None):
         self.called = []
+        self._solids = solids or []
 
     def export(self, *args, **kwargs):
         self.called.append(("export", args, kwargs))
 
     def save(self, *args, **kwargs):
         self.called.append(("save", args, kwargs))
+
+    def solids(self):
+        return self._solids
 
 
 _dummy_cq.Shape = DummyShape
@@ -82,6 +113,25 @@ class SphereShape(DummyShape):
         super().exportStl(file_name, *args, **kwargs)
         mesh = trimesh.creation.icosphere(subdivisions=self.subdivisions)
         mesh.export(file_name)
+
+
+class NonManifoldShape(DummyShape):
+    def __init__(self, valid: bool = True, closed: bool = True):
+        super().__init__()
+        self.valid = valid
+        self.closed = closed
+
+
+class OpenEdgeShape(DummyShape):
+    def __init__(self):
+        super().__init__()
+        self._open_edges = True
+
+
+class IntersectSolid(DummyShape):
+    def __init__(self, will_intersect: bool = True):
+        super().__init__()
+        self.will_intersect = will_intersect
 
 
 sys.modules.setdefault("cadquery", _dummy_cq)
@@ -174,3 +224,32 @@ def test_save_validator_triangle_count(tmp_path):
     file_name = tmp_path / "sphere.stl"
     with pytest.raises(ValidationError):
         sv.export_stl(shape, file_name)
+
+
+def test_save_validator_manifold_required():
+    rules = {"rules": {"manifold_geometry_required": True}}
+    sv = SaveValidator(rules)
+    shape = NonManifoldShape(valid=False)
+    SaveValidator.attach_model(shape, {})
+    with pytest.raises(ValidationError):
+        sv.export_stl(shape, "out.stl")
+
+
+def test_save_validator_open_edges():
+    rules = {"rules": {"no_open_edges": True}}
+    sv = SaveValidator(rules)
+    shape = OpenEdgeShape()
+    SaveValidator.attach_model(shape, {})
+    with pytest.raises(ValidationError):
+        sv.export_stl(shape, "out.stl")
+
+
+def test_save_validator_intersections():
+    rules = {"rules": {"no_intersecting_geometry": True}}
+    solid1 = IntersectSolid()
+    solid2 = IntersectSolid()
+    assembly = DummyAssembly([solid1, solid2])
+    sv = SaveValidator(rules)
+    SaveValidator.attach_model(assembly, {})
+    with pytest.raises(ValidationError):
+        sv.assembly_save(assembly)
