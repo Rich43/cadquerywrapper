@@ -1,7 +1,12 @@
 """Printability rules validation helpers."""
 
 import json
+import logging
 from pathlib import Path
+
+from .logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class ValidationError(Exception):
@@ -12,8 +17,11 @@ class ValidationError(Exception):
 
 def load_rules(rules_path: str | Path) -> dict:
     path = Path(rules_path)
+    logger.debug("Loading rules from %s", path)
     with path.open() as f:
-        return json.load(f)
+        data = json.load(f)
+    logger.debug("Loaded rules: %s", data.keys())
+    return data
 
 
 def validate(model: dict, rules: dict) -> list[str]:
@@ -32,6 +40,7 @@ def validate(model: dict, rules: dict) -> list[str]:
     list[str]
         List of human readable error messages. Empty if model is valid.
     """
+    logger.debug("Validating model: %s", model)
     errors = []
     rule_values = rules.get("rules", {})
 
@@ -48,6 +57,7 @@ def validate(model: dict, rules: dict) -> list[str]:
                     if axis_value > limit:
                         msg = f"Model size {axis} {axis_value} exceeds maximum {limit}"
                         errors.append(msg)
+                        logger.debug(msg)
             continue
         if model_value < value:
             msg = (
@@ -55,6 +65,8 @@ def validate(model: dict, rules: dict) -> list[str]:
                 f"is below minimum {value}"
             )
             errors.append(msg)
+            logger.debug(msg)
+    logger.debug("Validation errors: %s", errors)
     return errors
 
 
@@ -67,14 +79,16 @@ class Validator:
 
     def __init__(self, rules: dict | str | Path):
         if isinstance(rules, (str, Path)):
+            logger.debug("Initializing Validator with rules file %s", rules)
             self.rules = load_rules(rules)
         else:
+            logger.debug("Initializing Validator with rules dict")
             self.rules = rules
 
     @classmethod
     def from_file(cls, path: str | Path) -> "Validator":
         """Create a :class:`Validator` from a rules JSON file."""
-
+        logger.debug("Creating Validator from file %s", path)
         return cls(load_rules(path))
 
     def validate(self, model: dict) -> None:
@@ -88,7 +102,9 @@ class Validator:
 
         errors = validate(model, self.rules)
         if errors:
+            logger.debug("Validation failed with errors: %s", errors)
             raise ValidationError("; ".join(errors))
+        logger.debug("Model valid")
 
 
 __all__ = ["ValidationError", "load_rules", "validate", "Validator"]
@@ -96,33 +112,47 @@ __all__ = ["ValidationError", "load_rules", "validate", "Validator"]
 
 def is_manifold(shape: object) -> bool:
     """Return ``True`` if ``shape`` appears to be manifold."""
+    logger.debug("Checking if shape is manifold")
     try:
         if hasattr(shape, "isValid") and not shape.isValid():
+            logger.debug("Shape invalid")
             return False
     except Exception:
+        logger.debug("isValid check failed")
         return False
     try:
         if hasattr(shape, "isClosed") and not shape.isClosed():
+            logger.debug("Shape not closed")
             return False
     except Exception:
+        logger.debug("isClosed check failed")
         return False
+    logger.debug("Shape is manifold")
     return True
 
 
 def shape_has_open_edges(shape: object) -> bool:
     """Return ``True`` if ``shape`` seems to have open edges."""
+    logger.debug("Checking for open edges")
     if hasattr(shape, "hasOpenEdges"):
         try:
-            return bool(shape.hasOpenEdges())
+            result = bool(shape.hasOpenEdges())
+            logger.debug("hasOpenEdges: %s", result)
+            return result
         except Exception:
+            logger.debug("hasOpenEdges check failed")
             return True
     if hasattr(shape, "open_edges"):
-        return bool(getattr(shape, "open_edges"))
+        result = bool(getattr(shape, "open_edges"))
+        logger.debug("open_edges attribute: %s", result)
+        return result
+    logger.debug("No open edges detected")
     return False
 
 
 def assembly_has_intersections(assembly: object) -> bool:
     """Return ``True`` if any solids in ``assembly`` intersect."""
+    logger.debug("Checking assembly for intersections")
     solids = []
     if hasattr(assembly, "solids"):
         try:
@@ -151,13 +181,15 @@ def assembly_has_intersections(assembly: object) -> bool:
                 except Exception:
                     is_null = False
             if not is_null:
+                logger.debug("Intersection found between solids")
                 return True
+    logger.debug("No intersections found")
     return False
 
 
 def assembly_minimum_clearance(assembly: object) -> float | None:
     """Return the minimum distance between solids in ``assembly``."""
-
+    logger.debug("Computing minimum clearance in assembly")
     solids = []
     if hasattr(assembly, "solids"):
         try:
@@ -188,6 +220,7 @@ def assembly_minimum_clearance(assembly: object) -> float | None:
             pair_dist = min(dists)
             if min_dist is None or pair_dist < min_dist:
                 min_dist = pair_dist
+    logger.debug("Minimum clearance: %s", min_dist)
     return min_dist
 
 
@@ -195,7 +228,7 @@ def shape_max_overhang_angle(
     shape: object, z_dir: tuple[float, float, float] = (0.0, 0.0, 1.0)
 ) -> float | None:
     """Return the maximum overhang angle of ``shape`` in degrees."""
-
+    logger.debug("Calculating max overhang angle")
     faces = []
     for attr in ("faces", "Faces", "all_faces"):
         getter = getattr(shape, attr, None)
@@ -210,6 +243,7 @@ def shape_max_overhang_angle(
             faces = list(getter)
             break
     if not faces:
+        logger.debug("No faces found")
         return None
 
     import math
@@ -241,6 +275,7 @@ def shape_max_overhang_angle(
         if angle > max_angle:
             max_angle = angle
 
+    logger.debug("Max overhang angle: %s", max_angle)
     return max_angle
 
 
