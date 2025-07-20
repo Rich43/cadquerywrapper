@@ -4,7 +4,19 @@ CadQueryWrapper is a lightweight wrapper around [CadQuery/cadquery](https://gith
 
 ## Installation
 
-Install the runtime dependencies with:
+If Python is not available on your system, run the helper script. Use the
+Bash version on Linux and macOS or the batch version on Windows:
+
+```bash
+./install_python.sh
+```
+
+```cmd
+install_python.bat
+```
+Both scripts are self-contained and do not require Python to run.
+
+Then install the runtime dependencies with:
 
 ```bash
 pip install -r requirements.txt
