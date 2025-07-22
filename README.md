@@ -31,21 +31,23 @@ pip install -r requirements-dev.txt
 ## Usage
 
 ```python
+import cadquery as cq
 from cadquerywrapper import CadQueryWrapper, ValidationError
 
-# load rules and create a wrapper
-wrapper = CadQueryWrapper("cadquerywrapper/rules/bambu_printability_rules.json")
+# create a CadQuery model
+wp = cq.Workplane().box(1, 1, 1)
 
-model = {"minimum_wall_thickness_mm": 0.6}
+# load rules and create a wrapper using the workplane
+wrapper = CadQueryWrapper("cadquerywrapper/rules/bambu_printability_rules.json", wp)
+
+# validate using default rules
 try:
-    wrapper.validate(model)
+    wrapper.validate()
 except ValidationError as exc:
     print("Model invalid:", exc)
 
-wp = cadquery.Workplane().box(1, 1, 1)
-wrapper.attach_model(wp, model)
 # exporting will raise ValidationError if parameters fail
-wrapper.export_stl(wp, "out.stl")
+wrapper.export_stl("out.stl")
 ```
 
 ## Code Style

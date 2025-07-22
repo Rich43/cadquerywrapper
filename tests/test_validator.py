@@ -197,15 +197,15 @@ def test_validator_validate_raises():
 
 
 def test_save_validator_delegates_and_validates():
-    sv = SaveValidator({"rules": {"minimum_wall_thickness_mm": 0.8}})
+    sv = SaveValidator(RULES_PATH)
     obj = DummyShape()
-    SaveValidator.attach_model(obj, {"minimum_wall_thickness_mm": 0.9})
+    SaveValidator.attach_model(obj, {})
     sv.export(obj)
     assert _dummy_cq.exporters.calls[-1][0] is obj
 
 
 def test_save_validator_invalid_raises():
-    sv = SaveValidator({"rules": {"minimum_wall_thickness_mm": 0.8}})
+    sv = SaveValidator(RULES_PATH)
     obj = DummyShape()
     SaveValidator.attach_model(obj, {"minimum_wall_thickness_mm": 0.1})
     with pytest.raises(ValidationError):
@@ -213,19 +213,29 @@ def test_save_validator_invalid_raises():
 
 
 def test_wrapper_delegates_and_validates():
-    wrapper = CadQueryWrapper({"rules": {"minimum_wall_thickness_mm": 0.8}})
-    obj = DummyShape()
-    CadQueryWrapper.attach_model(obj, {"minimum_wall_thickness_mm": 0.9})
-    wrapper.export_stl(obj)
-    assert obj.called[-1][0] == "exportStl"
+    workplane = DummyShape()
+    wrapper = CadQueryWrapper(RULES_PATH, workplane)
+    # workplane already has an attached empty model
+    wrapper.export_stl()
+    assert workplane.called[-1][0] == "exportStl"
 
 
 def test_wrapper_invalid_raises():
-    wrapper = CadQueryWrapper({"rules": {"minimum_wall_thickness_mm": 0.8}})
-    obj = DummyShape()
-    CadQueryWrapper.attach_model(obj, {"minimum_wall_thickness_mm": 0.1})
+    workplane = DummyShape()
+    wrapper = CadQueryWrapper(RULES_PATH, workplane)
+    CadQueryWrapper.attach_model(workplane, {"minimum_wall_thickness_mm": 0.1})
     with pytest.raises(ValidationError):
-        wrapper.export_stl(obj)
+        wrapper.export_stl()
+
+
+def test_wrapper_validate_no_args():
+    workplane = DummyShape()
+    wrapper = CadQueryWrapper(RULES_PATH, workplane)
+    CadQueryWrapper.attach_model(workplane, {"minimum_wall_thickness_mm": 0.5})
+    with pytest.raises(ValidationError):
+        wrapper.validate()
+    CadQueryWrapper.attach_model(workplane, {"minimum_wall_thickness_mm": 0.9})
+    wrapper.validate()
 
 
 def test_validate_max_model_size_dict():
