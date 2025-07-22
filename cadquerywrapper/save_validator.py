@@ -33,10 +33,10 @@ class SaveValidator:
             self.validator = Validator(rules)
 
     @staticmethod
-    def attach_model(obj: Any, model: dict) -> None:
+    def attach_model(workplane: Any, model: dict) -> None:
         """Attach printability model data to a CadQuery object."""
-        logger.debug("Attaching model %s to object %s", model, obj)
-        setattr(obj, "_printability_model", model)
+        logger.debug("Attaching model %s to object %s", model, workplane)
+        setattr(workplane, "_printability_model", model)
 
     def _validate_obj(self, obj: Any) -> None:
         logger.debug("Validating object %s", obj)
