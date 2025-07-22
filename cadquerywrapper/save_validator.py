@@ -168,7 +168,7 @@ class SaveValidator:
         file_name = kwargs.get("fileName", kwargs.get("fname", file_name))
         self._validate_file_format(file_name)
         logger.debug("Saving with cq.export to %s", file_name)
-        return cq.export(obj, *args, **kwargs)
+        return cq.export(obj, *args, **kwargs)  # type: ignore[attr-defined]
 
     def export_stl(self, shape: cq.Shape, *args: Any, **kwargs: Any) -> None:
         """Validate ``shape`` and call ``exportStl``."""
