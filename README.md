@@ -52,3 +52,29 @@ wrapper.export_stl("out.stl")
 
 ## Code Style
 See [CODE_STYLE.md](CODE_STYLE.md) for contribution guidelines. Monkey patching is prohibited.
+
+## 🖥 Setup Instructions
+
+Run the setup script for your operating system:
+
+**Linux:**
+```bash
+chmod +x setup_linux.sh
+./setup_linux.sh
+```
+
+**macOS:**
+```bash
+chmod +x setup_mac.sh
+./setup_mac.sh
+```
+
+**Windows (PowerShell):**
+```powershell
+.\setup_windows.ps1
+```
+
+After installation:
+```bash
+poetry shell
+```
