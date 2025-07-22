@@ -197,9 +197,8 @@ def test_validator_validate_raises():
 
 
 def test_save_validator_delegates_and_validates():
-    sv = SaveValidator(RULES_PATH)
     obj = DummyShape()
-    SaveValidator.attach_model(obj, {})
+    sv = SaveValidator(RULES_PATH, obj)
     sv.export(obj)
     assert _dummy_cq.exporters.calls[-1][0] is obj
 
@@ -247,18 +246,16 @@ def test_validate_max_model_size_dict():
 
 def test_save_validator_model_too_large():
     rules = {"rules": {"max_model_size_mm": {"X": 1, "Y": 1, "Z": 1}}}
-    sv = SaveValidator(rules)
     obj = DummyBBoxShape(2, 0.5, 0.5)
-    SaveValidator.attach_model(obj, {})
+    sv = SaveValidator(rules, obj)
     with pytest.raises(ValidationError):
         sv.export_stl(obj, "out.stl")
 
 
 def test_save_validator_triangle_count(tmp_path):
     rules = {"rules": {"maximum_file_triangle_count": 100}}
-    sv = SaveValidator(rules)
     shape = SphereShape(subdivisions=3)
-    SaveValidator.attach_model(shape, {})
+    sv = SaveValidator(rules, shape)
     file_name = tmp_path / "sphere.stl"
     with pytest.raises(ValidationError):
         sv.export_stl(shape, file_name)
@@ -266,18 +263,16 @@ def test_save_validator_triangle_count(tmp_path):
 
 def test_save_validator_manifold_required():
     rules = {"rules": {"manifold_geometry_required": True}}
-    sv = SaveValidator(rules)
     shape = NonManifoldShape(valid=False)
-    SaveValidator.attach_model(shape, {})
+    sv = SaveValidator(rules, shape)
     with pytest.raises(ValidationError):
         sv.export_stl(shape, "out.stl")
 
 
 def test_save_validator_open_edges():
     rules = {"rules": {"no_open_edges": True}}
-    sv = SaveValidator(rules)
     shape = OpenEdgeShape()
-    SaveValidator.attach_model(shape, {})
+    sv = SaveValidator(rules, shape)
     with pytest.raises(ValidationError):
         sv.export_stl(shape, "out.stl")
 
@@ -287,8 +282,7 @@ def test_save_validator_intersections():
     solid1 = IntersectSolid()
     solid2 = IntersectSolid()
     assembly = DummyAssembly([solid1, solid2])
-    sv = SaveValidator(rules)
-    SaveValidator.attach_model(assembly, {})
+    sv = SaveValidator(rules, assembly)
     with pytest.raises(ValidationError):
         sv.assembly_save(assembly)
 
@@ -324,8 +318,7 @@ def test_save_validator_minimum_clearance():
     s1 = ClearanceSolid(0.2)
     s2 = ClearanceSolid(0.5)
     assembly = DummyAssembly([s1, s2])
-    sv = SaveValidator(rules)
-    SaveValidator.attach_model(assembly, {})
+    sv = SaveValidator(rules, assembly)
     with pytest.raises(ValidationError):
         sv.assembly_save(assembly)
 
@@ -333,7 +326,6 @@ def test_save_validator_minimum_clearance():
 def test_save_validator_overhang_angle():
     rules = {"rules": {"overhang_max_angle_deg": 45}}
     shape = OverhangShape([30, 50])
-    sv = SaveValidator(rules)
-    SaveValidator.attach_model(shape, {})
+    sv = SaveValidator(rules, shape)
     with pytest.raises(ValidationError):
         sv.export_stl(shape, "out.stl")

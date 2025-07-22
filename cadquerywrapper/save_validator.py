@@ -24,13 +24,19 @@ from .validator import (
 class SaveValidator:
     """Wrapper around CadQuery save functions that performs validation."""
 
-    def __init__(self, rules: dict | str | Path | Validator):
+    def __init__(
+        self, rules: dict | str | Path | Validator, obj: Any | None = None
+    ) -> None:
         if isinstance(rules, Validator):
             logger.debug("Initializing SaveValidator with Validator instance")
             self.validator = rules
         else:
             logger.debug("Initializing SaveValidator with rules: %s", rules)
             self.validator = Validator(rules)
+
+        if obj is not None:
+            logger.debug("Attaching empty model to object %s", obj)
+            self.attach_model(obj, {})
 
     @staticmethod
     def attach_model(workplane: Any, model: dict) -> None:
