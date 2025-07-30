@@ -50,6 +50,9 @@ except ValidationError as exc:
 wrapper.export_stl("out.stl")
 ```
 
+See `examples/Ex001_Simple_Block.py` for a complete script that validates and
+saves a simple block model using ``CadQueryWrapper``.
+
 ## Code Style
 See [CODE_STYLE.md](CODE_STYLE.md) for contribution guidelines. Monkey patching is prohibited.
 
