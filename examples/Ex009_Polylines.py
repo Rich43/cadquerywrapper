@@ -1,4 +1,5 @@
 import cadquery as cq
+from cadquerywrapper import CadQueryWrapper
 
 # These can be modified rather than hardcoding values for each dimension.
 # Define up our Length, Height, Width, and thickness of the beam
@@ -35,3 +36,10 @@ result = cq.Workplane("front").polyline(pts).mirrorY().extrude(L)
 
 # Displays the result of this script
 show_object(result)
+
+# Validate and export with CadQueryWrapper
+wrapper = CadQueryWrapper(
+    "cadquerywrapper/rules/bambu_printability_rules.json",
+    result,
+)
+wrapper.export_stl("Ex009_Polylines.stl")

@@ -1,4 +1,5 @@
 import cadquery as cq
+from cadquerywrapper import CadQueryWrapper
 
 # Create a plate with 4 rounded corners in the Z-axis.
 # 1.  Establishes a workplane that an object can be built on.
@@ -11,3 +12,10 @@ result = cq.Workplane("XY").box(3, 3, 0.5).edges("|Z").fillet(0.125)
 
 # Displays the result of this script
 show_object(result)
+
+# Validate and export with CadQueryWrapper
+wrapper = CadQueryWrapper(
+    "cadquerywrapper/rules/bambu_printability_rules.json",
+    result,
+)
+wrapper.export_stl("Ex020_Rounding_Corners_with_Fillets.stl")

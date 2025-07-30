@@ -1,4 +1,5 @@
 import cadquery as cq
+from cadquerywrapper import CadQueryWrapper
 from cadquery.selectors import AreaNthSelector
 
 case_bottom = (
@@ -45,3 +46,10 @@ case_top = (
 
 show_object(case_bottom)
 show_object(case_top, options={"alpha": 0.5})
+
+# Validate and export the bottom case
+wrapper = CadQueryWrapper(
+    "cadquerywrapper/rules/bambu_printability_rules.json",
+    case_bottom,
+)
+wrapper.export_stl("Ex026_Case_Bottom.stl")

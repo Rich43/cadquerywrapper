@@ -1,4 +1,5 @@
 import cadquery as cq
+from cadquerywrapper import CadQueryWrapper
 
 # 1.  Establishes a workplane to create the spline on to extrude.
 # 1a. Uses the X and Y origins to define the workplane, meaning that the
@@ -25,3 +26,10 @@ result = r.extrude(0.5)
 
 # Displays the result of this script
 show_object(result)
+
+# Validate and export with CadQueryWrapper
+wrapper = CadQueryWrapper(
+    "cadquerywrapper/rules/bambu_printability_rules.json",
+    result,
+)
+wrapper.export_stl("Ex010_Defining_an_Edge_with_a_Spline.stl")

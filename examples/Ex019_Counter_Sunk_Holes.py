@@ -1,4 +1,5 @@
 import cadquery as cq
+from cadquerywrapper import CadQueryWrapper
 
 # Create a plate with 4 counter-sunk holes in it.
 # 1.  Establishes a workplane using an XY object instead of a named plane.
@@ -23,3 +24,10 @@ result = (
 
 # Displays the result of this script
 show_object(result)
+
+# Validate and export with CadQueryWrapper
+wrapper = CadQueryWrapper(
+    "cadquerywrapper/rules/bambu_printability_rules.json",
+    result,
+)
+wrapper.export_stl("Ex019_Counter_Sunk_Holes.stl")

@@ -1,5 +1,6 @@
 # This script can create any regular rectangular Lego(TM) Brick
 import cadquery as cq
+from cadquerywrapper import CadQueryWrapper
 
 #####
 # Inputs
@@ -68,3 +69,10 @@ else:
 
 # Render the solid
 show_object(tmp)
+
+# Validate and export the final brick
+wrapper = CadQueryWrapper(
+    "cadquerywrapper/rules/bambu_printability_rules.json",
+    tmp,
+)
+wrapper.export_stl("Ex100_Lego_Brick.stl")

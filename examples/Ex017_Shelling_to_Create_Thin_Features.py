@@ -1,4 +1,5 @@
 import cadquery as cq
+from cadquerywrapper import CadQueryWrapper
 
 # Create a hollow box that's open on both ends with a thin wall.
 # 1.  Establishes a workplane that an object can be built on.
@@ -12,3 +13,10 @@ result = cq.Workplane("front").box(2, 2, 2).faces("+Z").shell(0.05)
 
 # Displays the result of this script
 show_object(result)
+
+# Validate and export with CadQueryWrapper
+wrapper = CadQueryWrapper(
+    "cadquerywrapper/rules/bambu_printability_rules.json",
+    result,
+)
+wrapper.export_stl("Ex017_Shelling_to_Create_Thin_Features.stl")

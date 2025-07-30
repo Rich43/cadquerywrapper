@@ -1,4 +1,5 @@
 import cadquery as cq
+from cadquerywrapper import CadQueryWrapper
 
 # Points we will use to create spline and polyline paths to sweep over
 pts = [(0, 1), (1, 2), (2, 4)]
@@ -34,3 +35,10 @@ show_object(frenetShell.translate((5, 0, 0)))
 show_object(defaultRect.translate((10, 0, 0)))
 show_object(plineSweep)
 show_object(arcSweep.translate((20, 0, 0)))
+
+# Validate and export one of the sweeps
+wrapper = CadQueryWrapper(
+    "cadquerywrapper/rules/bambu_printability_rules.json",
+    defaultSweep,
+)
+wrapper.export_stl("Ex023_Sweep_default.stl")

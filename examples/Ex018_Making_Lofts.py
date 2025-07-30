@@ -1,4 +1,5 @@
 import cadquery as cq
+from cadquerywrapper import CadQueryWrapper
 
 # Create a lofted section between a rectangle and a circular section.
 # 1.  Establishes a workplane that an object can be built on.
@@ -23,3 +24,10 @@ result = (
 
 # Displays the result of this script
 show_object(result)
+
+# Validate and export with CadQueryWrapper
+wrapper = CadQueryWrapper(
+    "cadquerywrapper/rules/bambu_printability_rules.json",
+    result,
+)
+wrapper.export_stl("Ex018_Making_Lofts.stl")

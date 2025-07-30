@@ -1,4 +1,5 @@
 import cadquery as cq
+from cadquerywrapper import CadQueryWrapper
 
 # X axis line length 20.0
 path = cq.Workplane("XZ").moveTo(-10, 0).lineTo(10, 0)
@@ -86,3 +87,10 @@ show_object(circletorectSweep.translate((0, 5, 0)))
 show_object(recttocircleSweep.translate((0, 10, 0)))
 show_object(specialSweep.translate((0, 15, 0)))
 show_object(arcSweep.translate((0, -5, 0)))
+
+# Validate and export one of the sweeps
+wrapper = CadQueryWrapper(
+    "cadquerywrapper/rules/bambu_printability_rules.json",
+    defaultSweep,
+)
+wrapper.export_stl("Ex024_Sweep_With_Multiple_Sections.stl")
