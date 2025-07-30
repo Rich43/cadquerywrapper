@@ -1,4 +1,5 @@
 import cadquery as cq
+from cadquerywrapper import CadQueryWrapper
 
 # These can be modified rather than hardcoding values for each dimension.
 width = 2.0  # Overall width of the plate
@@ -47,3 +48,10 @@ result = (
 
 # Displays the result of this script
 show_object(result)
+
+# Validate and export with CadQueryWrapper
+wrapper = CadQueryWrapper(
+    "cadquerywrapper/rules/bambu_printability_rules.json",
+    result,
+)
+wrapper.export_stl("Ex005_Extruded_Lines_and_Arcs.stl")

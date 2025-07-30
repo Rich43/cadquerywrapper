@@ -1,4 +1,5 @@
 import cadquery as cq
+from cadquerywrapper import CadQueryWrapper
 
 # 1.  Establishes a workplane that an object can be built on.
 # 1a. Uses the named plane orientation "front" to define the workplane, meaning
@@ -18,3 +19,10 @@ result = r.mirrorY().extrude(0.25)
 
 # Displays the result of this script
 show_object(result)
+
+# Validate and export with CadQueryWrapper
+wrapper = CadQueryWrapper(
+    "cadquerywrapper/rules/bambu_printability_rules.json",
+    result,
+)
+wrapper.export_stl("Ex011_Mirroring_Symmetric_Geometry.stl")

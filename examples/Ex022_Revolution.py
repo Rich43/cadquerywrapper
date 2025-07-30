@@ -1,4 +1,5 @@
 import cadquery as cq
+from cadquerywrapper import CadQueryWrapper
 
 # The dimensions of the model. These can be modified rather than changing the
 # shape's code directly.
@@ -19,3 +20,10 @@ result = cq.Workplane("XY").rect(rectangle_width, rectangle_length, False).revol
 
 # Displays the result of this script
 show_object(result)
+
+# Validate and export with CadQueryWrapper
+wrapper = CadQueryWrapper(
+    "cadquerywrapper/rules/bambu_printability_rules.json",
+    result,
+)
+wrapper.export_stl("Ex022_Revolution.stl")

@@ -1,4 +1,5 @@
 import cadquery as cq
+from cadquerywrapper import CadQueryWrapper
 
 # These can be modified rather than hardcoding values for each dimension.
 plate_radius = 2.0  # The radius of the plate that will be extruded
@@ -30,3 +31,10 @@ result = r.extrude(thickness)
 
 # Displays the result of this script
 show_object(result)
+
+# Validate and export with CadQueryWrapper
+wrapper = CadQueryWrapper(
+    "cadquerywrapper/rules/bambu_printability_rules.json",
+    result,
+)
+wrapper.export_stl("Ex007_Using_Point_Lists.stl")

@@ -1,5 +1,6 @@
 from math import sin, cos, pi, sqrt
 import cadquery as cq
+from cadquerywrapper import CadQueryWrapper
 
 # TEST_1
 # example from PythonOCC core_geometry_geomplate.py, use of thickness = 0 returns 2D surface.
@@ -10,6 +11,13 @@ plate_0 = cq.Workplane("XY").interpPlate(edge_points, surface_points, thickness)
 print("plate_0.val().Volume() = ", plate_0.val().Volume())
 plate_0 = plate_0.translate((0, 6 * 12, 0))
 show_object(plate_0)
+
+# Validate and export the first plate
+wrapper = CadQueryWrapper(
+    "cadquerywrapper/rules/bambu_printability_rules.json",
+    plate_0,
+)
+wrapper.export_stl("Ex101_plate_0.stl")
 
 # EXAMPLE 1
 # Plate with 5 sides and 2 bumps, one side is not co-planar with the other sides

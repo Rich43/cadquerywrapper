@@ -1,4 +1,5 @@
 import cadquery as cq
+from cadquerywrapper import CadQueryWrapper
 
 # These can be modified rather than hardcoding values for each dimension.
 circle_radius = 3.0  # The outside radius of the plate
@@ -33,3 +34,10 @@ result = result.extrude(thickness)
 
 # Displays the result of this script
 show_object(result)
+
+# Validate and export with CadQueryWrapper
+wrapper = CadQueryWrapper(
+    "cadquerywrapper/rules/bambu_printability_rules.json",
+    result,
+)
+wrapper.export_stl("Ex006_Moving_the_Current_Working_Point.stl")

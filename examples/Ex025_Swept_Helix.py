@@ -1,4 +1,5 @@
 import cadquery as cq
+from cadquerywrapper import CadQueryWrapper
 
 r = 0.5  # Radius of the helix
 p = 0.4  # Pitch of the helix - vertical distance between loops
@@ -18,3 +19,10 @@ result = (
 )
 
 show_object(result)
+
+# Validate and export with CadQueryWrapper
+wrapper = CadQueryWrapper(
+    "cadquerywrapper/rules/bambu_printability_rules.json",
+    result,
+)
+wrapper.export_stl("Ex025_Swept_Helix.stl")
