@@ -3,13 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from .logger import get_logger
-
-logger = get_logger(__name__)
-
-import trimesh
-
 import cadquery as cq
+import trimesh
 
 from .validator import (
     ValidationError,
@@ -19,6 +14,9 @@ from .validator import (
     shape_has_open_edges,
     validate,
 )
+from .logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class SaveValidator:

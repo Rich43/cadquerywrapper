@@ -1,7 +1,6 @@
 """Printability rules validation helpers."""
 
 import json
-import logging
 from pathlib import Path
 
 from .logger import get_logger

@@ -28,6 +28,16 @@ For running the test suite use the development requirements instead:
 pip install -r requirements-dev.txt
 ```
 
+## Running the Examples
+
+Launch the interactive menu to run any example script:
+
+```bash
+python scripts/run_examples.py
+```
+
+Select a number from the list to execute that example.
+
 ## Usage
 
 ```python

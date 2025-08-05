@@ -1,4 +1,3 @@
-import importlib
 import sys
 import types
 from pathlib import Path
@@ -165,9 +164,9 @@ class OverhangShape(DummyShape):
 sys.modules.setdefault("cadquery", _dummy_cq)
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from cadquerywrapper.validator import Validator, load_rules, validate
-from cadquerywrapper.save_validator import SaveValidator, ValidationError
-from cadquerywrapper.project import CadQueryWrapper
+from cadquerywrapper.validator import Validator, load_rules, validate  # noqa: E402
+from cadquerywrapper.save_validator import SaveValidator, ValidationError  # noqa: E402
+from cadquerywrapper.project import CadQueryWrapper  # noqa: E402
 
 
 RULES_PATH = Path("cadquerywrapper/rules/bambu_printability_rules.json")
