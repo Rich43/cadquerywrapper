@@ -3,14 +3,13 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from .logger import get_logger
-
-logger = get_logger(__name__)
-
 import cadquery as cq
 
 from .save_validator import SaveValidator
-from .validator import ValidationError, Validator
+from .validator import Validator
+from .logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class CadQueryWrapper:
